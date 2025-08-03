@@ -35,5 +35,5 @@
     }
   ],
   "trailingSlash": false,
-  "regions": ["sfo1"]  // Prioriza servidores en USA para mejor latency
+  "regions": ["sfo1"]  
 }
