@@ -7,15 +7,15 @@
       "source": "/api/(.*)", 
       "destination": "/api/$1" 
     },
-   
-    { 
-      "source": "/(tienda-[a-z0-9-]+)", 
-      "destination": "/$1.html" 
-    },
-    
+    // Regla para URLs con prefijo /tienda/
     { 
       "source": "/tienda/([a-z0-9-]+)", 
-      "destination": "/tienda-$1.html" 
+      "destination": "/HTML/público/tienda-$1.html" 
+    },
+    // Regla para compatibilidad con URLs viejas
+    { 
+      "source": "/(tienda-[a-z0-9-]+)", 
+      "destination": "/HTML/público/$1.html" 
     }
   ],
   "headers": [
