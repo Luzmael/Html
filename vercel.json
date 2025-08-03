@@ -7,12 +7,12 @@
       "source": "/api/(.*)", 
       "destination": "/api/$1" 
     },
-    // Rewrite para compatibilidad con tus archivos actuales
+   
     { 
       "source": "/(tienda-[a-z0-9-]+)", 
       "destination": "/$1.html" 
     },
-    // Nueva regla para URLs limpias
+    
     { 
       "source": "/tienda/([a-z0-9-]+)", 
       "destination": "/tienda-$1.html" 
