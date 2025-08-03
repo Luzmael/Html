@@ -1,7 +1,7 @@
 {
   "version": 2,
   "public": true,
-  "cleanUrls": false,  // <- Esto fuerza a mostrar .html
+  "cleanUrls": false,
   "rewrites": [
     { 
       "source": "/api/(.*)", 
@@ -22,5 +22,5 @@
       ]
     }
   ],
-  "trailingSlash": false  // <- Evita conflictos con / al final
+  "trailingSlash": false
 }
