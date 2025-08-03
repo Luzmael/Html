@@ -1118,21 +1118,28 @@
         // Función para obtener configuración de WhatsApp
         async function loadWhatsAppNumber() {
             try {
-                const whatsappUUID = document.querySelector('meta[name="whatsapp-uuid"]')?.content;
+                // Obtener la URL única de la página actual
+                const currentUrl = window.location.pathname.split('/').pop() || '';
+                const urlUnica = currentUrl.replace('.html', '').replace(/\//g, '');
                 
-                if (!whatsappUUID) throw new Error("No se encontró el UUID en el HTML");
+                if (!urlUnica) {
+                    throw new Error("No se pudo determinar la URL única de esta tienda");
+                }
 
-                const response = await fetch('/api/whatsapp-number');
+                // Hacer la petición al endpoint con la URL única
+                const response = await fetch(`/api/whatsapp-number?url=${urlUnica}`);
                 const data = await response.json();
                 
-                if (!data?.phone_number) throw new Error("Número no encontrado o inactivo");
+                if (!data?.whatsapp) {
+                    throw new Error("Número de WhatsApp no encontrado o inactivo para esta tienda");
+                }
 
-                whatsappNumber = data.phone_number;
-                console.log("UUID usado:", whatsappUUID, "Número configurado:", whatsappNumber);
+                whatsappNumber = data.whatsapp;
+                console.log("URL única usada:", urlUnica, "Número configurado:", whatsappNumber);
                 return true;
             } catch (error) {
-                console.error("Error al cargar número:", error.message);
-                alert(`Error: ${error.message}\nVerifica que el UUID ${whatsappUUID} existe y está activo en Supabase.`);
+                console.error("Error al cargar número de WhatsApp:", error.message);
+                alert(`Error: ${error.message}\nVerifica que la URL única está configurada correctamente en Supabase.`);
                 return false;
             }
         }
@@ -1181,7 +1188,7 @@
                             description: product.description || '',
                             price: `Bs ${(parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0) * currentExchangeRate).toFixed(2)}`,
                             originalPrice: product.price || '$0.00',
-                            priceValue: parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0,
+                            priceValue: parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0),
                             image: product.image || 'https://via.placeholder.com/500',
                             images: product.images || [],
                             video: product.video || '',
