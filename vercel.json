@@ -1,14 +1,15 @@
 {
   "version": 2,
   "public": true,
+  "cleanUrls": false,  // <- Esto fuerza a mostrar .html
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { 
+      "source": "/api/(.*)", 
+      "destination": "/api/$1" 
+    },
     { 
       "source": "/(tienda-[a-z0-9-]+)", 
-      "destination": "/$1.html",
-      "headers": {
-        "Content-Type": "text/html"
-      }
+      "destination": "/$1.html" 
     }
   ],
   "headers": [
@@ -19,12 +20,7 @@
         { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS" },
         { "key": "X-Cache-Status", "value": "HIT" }
       ]
-    },
-    {
-      "source": "/(.*).html",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600" }
-      ]
     }
-  ]
+  ],
+  "trailingSlash": false  // <- Evita conflictos con / al final
 }
