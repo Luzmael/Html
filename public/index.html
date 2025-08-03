@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+       <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -9,7 +9,6 @@
     <meta name="html-name" content="Tienda tres">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -1103,11 +1102,6 @@
     </div>
 
     <script>
-        // 1. Configuración de Supabase
-        const supabaseUrl = 'https://bekzfacymgaytpgfqrzg.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJla3pmYWN5bWdheXRwZ2ZxcnpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQxMjAzNjcsImV4cCI6MjA2OTY5NjM2N30.R1hbWLGSvp6LcqqsDd-ibTGMS_mrGNl0oP-Ah-0iSt8';
-        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
         // Variables globales
         let currentExchangeRate = 115.33;
         let shippingCost = 0;
@@ -1128,14 +1122,9 @@
                 
                 if (!whatsappUUID) throw new Error("No se encontró el UUID en el HTML");
 
-                const { data, error } = await supabaseClient
-                    .from('whatsapp_numbers')
-                    .select('phone_number, is_active')
-                    .eq('id', whatsappUUID)
-                    .eq('is_active', true)
-                    .single();
-
-                if (error) throw error;
+                const response = await fetch('/api/whatsapp-number');
+                const data = await response.json();
+                
                 if (!data?.phone_number) throw new Error("Número no encontrado o inactivo");
 
                 whatsappNumber = data.phone_number;
@@ -1151,12 +1140,9 @@
         // Función para obtener configuración de la app
         async function getAppSettings() {
             try {
-                const { data, error } = await supabaseClient
-                    .from('app_settings')
-                    .select('*')
-                    .limit(1);
-
-                if (error) throw error;
+                const response = await fetch('/api/app-settings');
+                const data = await response.json();
+                
                 if (data && data.length > 0) {
                     currentExchangeRate = parseFloat(data[0].rate) || 115.33;
                     shippingCost = parseFloat(data[0].shipping_cost) || 0;
@@ -1184,11 +1170,8 @@
             try {
                 await getAppSettings();
                 
-                const { data, error } = await supabaseClient
-                    .from('products')
-                    .select('*');
-                
-                if (error) throw error;
+                const response = await fetch('/api/products');
+                const data = await response.json();
                 
                 if (data && data.length > 0) {
                     return {
@@ -1198,7 +1181,7 @@
                             description: product.description || '',
                             price: `Bs ${(parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0) * currentExchangeRate).toFixed(2)}`,
                             originalPrice: product.price || '$0.00',
-                            priceValue: parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0),
+                            priceValue: parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0,
                             image: product.image || 'https://via.placeholder.com/500',
                             images: product.images || [],
                             video: product.video || '',
