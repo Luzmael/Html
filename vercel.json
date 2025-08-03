@@ -3,19 +3,17 @@
   "public": true,
   "cleanUrls": false,
   "rewrites": [
-    { 
-      "source": "/api/(.*)", 
-      "destination": "/api/$1" 
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
-    
-    { 
-      "source": "/tienda/([a-z0-9-]+)", 
-      "destination": "/HTML/público/tienda-$1.html" 
+    {
+      "source": "/tienda/([a-z0-9-]+)",
+      "destination": "/HTML/público/tienda-$1.html"
     },
-   
-    { 
-      "source": "/(tienda-[a-z0-9-]+)", 
-      "destination": "/HTML/público/$1.html" 
+    {
+      "source": "/(tienda-[a-z0-9-]+)",
+      "destination": "/HTML/público/$1.html"
     }
   ],
   "headers": [
@@ -24,9 +22,18 @@
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS" },
-        { "key": "X-Cache-Status", "value": "HIT" }
+        { "key": "X-Cache-Status", "value": "HIT" },
+        { "key": "Cache-Control", "value": "public, max-age=3600" }
+      ]
+    },
+    {
+      "source": "/HTML/público/(.*).html",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=86400" },
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" }
       ]
     }
   ],
-  "trailingSlash": false
+  "trailingSlash": false,
+  "regions": ["sfo1"]  // Prioriza servidores en USA para mejor latency
 }
