@@ -9,11 +9,11 @@
     },
     {
       "source": "/tienda/([a-z0-9-]+)",
-      "destination": "/HTML/público/tienda-$1.html"
+      "destination": "/HTML/público/tienda-$1/index.html"
     },
     {
       "source": "/(tienda-[a-z0-9-]+)",
-      "destination": "/HTML/público/$1.html"
+      "destination": "/HTML/público/$1/index.html"
     }
   ],
   "headers": [
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "source": "/HTML/público/(.*).html",
+      "source": "/HTML/público/(.*)/index.html",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=86400" },
         { "key": "Content-Type", "value": "text/html; charset=utf-8" }
@@ -35,5 +35,6 @@
     }
   ],
   "trailingSlash": false,
-  "regions": ["sfo1"]  
+  "regions": ["sfo1"]
 }
+
