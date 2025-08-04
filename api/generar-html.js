@@ -10,9 +10,16 @@ async function generarParaTiendas() {
     .filter(dir => dir.isDirectory() && dir.name.startsWith('tienda-'))
     .map(dir => dir.name);
 
-  const imagenesLocales = fs.readdirSync('html/public/productos')
-    .filter(file => file.endsWith('.webp'))
-    .sort();
+  const imagenesLocales = (() => {
+    try {
+      return fs.readdirSync(path.join('html/public', 'productos'))
+        .filter(file => file.toLowerCase().endsWith('.webp'))
+        .sort();
+    } catch (err) {
+      console.warn('⚠️ Carpeta productos no encontrada o vacía:', err.message);
+      return [];
+    }
+  })();
 
   for (const nombreTienda of carpetas) {
     console.log(`🧪 Generando catálogo para: ${nombreTienda}...`);
@@ -56,3 +63,4 @@ async function generarParaTiendas() {
 }
 
 generarParaTiendas();
+
