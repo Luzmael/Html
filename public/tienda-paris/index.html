@@ -1,4 +1,4 @@
-          <!DOCTYPE html>
+   <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -8,7 +8,7 @@
     <meta name="whatsapp-uuid" content="a327e09a-0f45-4327-abb6-13e0f1fab85d">
     <meta name="html-name" content="Tienda tres">
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> 
     <style>
         * {
             box-sizing: border-box;
@@ -1104,14 +1104,6 @@
     </div>
 
     <script>
-
-     
-  window.onload = function() {
-    alert("⚠️ Este sistema activa productos solo si se alcanza el MQU (Mínimo de Quórum de Unidades). Si algún producto no llega al mínimo, el reembolso será gestionado por el líder comunitario de tu calle o iglesia. ¡Gracias por apoyar esta compra solidaria!");
-  }
-
-
-       
         // Variables globales
         let currentExchangeRate = 115.33;
         let shippingCost = 0;
@@ -1181,6 +1173,19 @@
                 ? `https://www.youtube.com/embed/${match[2]}?autoplay=1&rel=0` 
                 : url;
         }
+
+        // Función para obtener URL de imagen con caché
+        function getCachedImageUrl(imagePath) {
+            if (!imagePath) return 'https://via.placeholder.com/500';
+            
+            // Si es una URL completa (http/https), devolverla directamente
+            if (/^https?:\/\//i.test(imagePath)) {
+                return imagePath;
+            }
+            
+            // Si es una ruta de Supabase, usar el proxy de caché
+            return `/api/image-proxy?path=${encodeURIComponent(imagePath)}`;
+        }
         
         // Función para cargar productos
         async function loadProducts() {
@@ -1199,8 +1204,8 @@
                             price: `Bs ${(parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0) * currentExchangeRate).toFixed(2)}`,
                             originalPrice: product.price || '$0.00',
                             priceValue: parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0),
-                            image: product.image || 'https://via.placeholder.com/500',
-                            images: product.images || [],
+                            image: getCachedImageUrl(product.image) || 'https://via.placeholder.com/500',
+                            images: product.images ? product.images.map(img => getCachedImageUrl(img)) : [],
                             video: product.video || '',
                             sizes: product.sizes || [],
                             colors: product.colors || [],
