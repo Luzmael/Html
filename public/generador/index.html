@@ -1,0 +1,24 @@
+<!-- Botón modificado -->
+<button id="triggerBtn">Generar Tiendas en GitHub</button>
+
+<script>
+document.getElementById('triggerBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('triggerBtn');
+  btn.disabled = true;
+  
+  try {
+    const response = await fetch('/api/trigger', { method: 'POST' });
+    const result = await response.json();
+    
+    if (result.success) {
+      alert('✅ GitHub Action iniciado. Los archivos se generarán en 1-2 minutos.');
+    } else {
+      throw new Error(result.error || 'Error desconocido');
+    }
+  } catch (error) {
+    alert(`❌ Error: ${error.message}`);
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
