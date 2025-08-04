@@ -1,25 +1,39 @@
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 
-const baseHTML = fs.readFileSync('html/base/index.html', 'utf8');
-const supabase = createClient('https://bekzfacymgaytpgfqrzg.supabase.co', 'SUPABASE_KEY_PRIVADA');
+// Inicializar Supabase desde archivo .env
+const supabase = createClient(
+  'https://bekzfacymgaytpgfqrzg.supabase.co',
+  process.env.SUPABASE_KEY_PRIVADA
+);
+
+// Ruta base segura
+const rutaBase = path.resolve(__dirname, '../');
+
+// Cargar plantilla base
+const baseHTML = fs.readFileSync(path.join(rutaBase, 'base', 'index.html'), 'utf8');
+
+// Verificar y listar imágenes locales .webp
+const obtenerImagenesLocales = () => {
+  const rutaImagenes = path.join(rutaBase, 'public', 'productos');
+  if (!fs.existsSync(rutaImagenes)) {
+    console.warn(`⚠️ Carpeta de productos no encontrada: ${rutaImagenes}`);
+    return [];
+  }
+  return fs.readdirSync(rutaImagenes)
+    .filter(file => file.toLowerCase().endsWith('.webp'))
+    .sort();
+};
 
 async function generarParaTiendas() {
-  const carpetas = fs.readdirSync('html/public', { withFileTypes: true })
+  const rutaTiendas = path.join(rutaBase, 'public');
+  const carpetas = fs.readdirSync(rutaTiendas, { withFileTypes: true })
     .filter(dir => dir.isDirectory() && dir.name.startsWith('tienda-'))
     .map(dir => dir.name);
 
-  const imagenesLocales = (() => {
-    try {
-      return fs.readdirSync(path.join('html/public', 'productos'))
-        .filter(file => file.toLowerCase().endsWith('.webp'))
-        .sort();
-    } catch (err) {
-      console.warn('⚠️ Carpeta productos no encontrada o vacía:', err.message);
-      return [];
-    }
-  })();
+  const imagenesLocales = obtenerImagenesLocales();
 
   for (const nombreTienda of carpetas) {
     console.log(`🧪 Generando catálogo para: ${nombreTienda}...`);
@@ -35,9 +49,9 @@ async function generarParaTiendas() {
       continue;
     }
 
-    const productosFiltrados = productos.filter(p => {
-      return p.descripcion?.toLowerCase().includes(nombreTienda.replace('tienda-', '').toLowerCase());
-    });
+    const productosFiltrados = productos.filter(p =>
+      p.descripcion?.toLowerCase().includes(nombreTienda.replace('tienda-', '').toLowerCase())
+    );
 
     const htmlFinal = productosFiltrados.map((producto, i) => {
       const imagen = imagenesLocales[i] || 'placeholder.webp';
@@ -55,10 +69,10 @@ async function generarParaTiendas() {
       `;
     }).join('\n');
 
+    const rutaHTML = path.join(rutaTiendas, nombreTienda, 'index.html');
     const htmlCompleto = baseHTML.replace('<!-- Products will load here -->', htmlFinal);
-    const rutaDestino = path.join('html/public', nombreTienda, 'index.html');
-    fs.writeFileSync(rutaDestino, htmlCompleto);
-    console.log(`✅ Generado correctamente: ${rutaDestino}`);
+    fs.writeFileSync(rutaHTML, htmlCompleto);
+    console.log(`✅ Generado correctamente: ${rutaHTML}`);
   }
 }
 
