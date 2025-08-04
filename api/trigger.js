@@ -1,22 +1,17 @@
-// Para Vercel/Netlify Functions
-const fetch = require('node-fetch');
-
-module.exports = async (req, res) => {
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const REPO_OWNER = 'tu-usuario';
-  const REPO_NAME = 'tu-repo';
+export default async (req, res) => {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
 
   try {
     const response = await fetch(
-      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/dispatches`,
+      `https://api.github.com/repos/${process.env.GITHUB_REPO}/dispatches`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Authorization': `token ${process.env.GH_TOKEN}`,
           'Accept': 'application/vnd.github.everest-preview+json'
         },
         body: JSON.stringify({
-          event_type: 'trigger-generate'
+          event_type: 'run-generator'
         })
       }
     );
