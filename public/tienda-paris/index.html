@@ -1181,34 +1181,34 @@
         }
     }
 
-    // 3. Display Products (modificado SOLO en la parte de imágenes)
-    function displayProducts(productsToShow) {
-        const catalogEl = document.getElementById('catalog');
-        catalogEl.innerHTML = '';
+    // Función modificada CORREGIDA
+function displayProducts(productsToShow) {
+    const catalogEl = document.getElementById('catalog');
+    catalogEl.innerHTML = '';
+    
+    if (!productsToShow || productsToShow.length === 0) {
+        catalogEl.innerHTML = '<div class="no-results">No products found matching your search</div>';
+        return;
+    }
+    
+    productsToShow.forEach(product => {
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card';
         
-        if (!productsToShow || productsToShow.length === 0) {
-            catalogEl.innerHTML = '<div class="no-results">No products found matching your search</div>';
-            return;
+        // Badge
+        const badgeHTML = product.badge 
+            ? `<div class="product-badge">${product.badge}</div>` 
+            : '';
+        
+        // Prepare media items CON CORRECCIÓN DE PARÉNTESIS
+        const mediaItems = [];
+        if (product.image) {
+            const imagePath = extractPathFromSupabaseURL(product.image);
+            mediaItems.push({ 
+                type: 'image', 
+                src: `/api/image-proxy?path=${encodeURIComponent(imagePath)}`  // ← Paréntesis cerrado correctamente
+            });
         }
-        
-        productsToShow.forEach(product => {
-            const productCard = document.createElement('div');
-            productCard.className = 'product-card';
-            
-            // Badge (original)
-            const badgeHTML = product.badge 
-                ? `<div class="product-badge">${product.badge}</div>` 
-                : '';
-            
-            // Prepare media items (MODIFICADO para proxy)
-            const mediaItems = [];
-            if (product.image) {
-                const imagePath = extractPathFromSupabaseURL(product.image);
-                mediaItems.push({ 
-                    type: 'image', 
-                    src: `/api/image-proxy?path=${encodeURIComponent(imagePath)}` 
-                });
-            }
             
             if (product.images && product.images.length > 0) {
                 product.images.forEach(img => {
