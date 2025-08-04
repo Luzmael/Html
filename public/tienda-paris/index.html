@@ -1147,39 +1147,38 @@
             : url;
     }
 
-    // 2. Load Products (original)
-    async function loadProducts() {
-        try {
-            await getAppSettings();
-            const response = await fetch('/api/products');
-            const data = await response.json();
-            
-            if (data && data.length > 0) {
-                return {
-                    products: data.map(product => ({
-                        id: product.id,
-                        name: product.name || 'Unnamed Product',
-                        description: product.description || '',
-                        price: `Bs ${(parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0) * currentExchangeRate).toFixed(2)}`,
-                        originalPrice: product.price || '$0.00',
-                        priceValue: parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0,
-                        image: product.image || 'https://via.placeholder.com/500',
-                        images: product.images || [],
-                        video: product.video || '',
-                        sizes: product.sizes || [],
-                        colors: product.colors || [],
-                        badge: product.badge || '',
-                        category: product.category || 'Uncategorized'
-                    })),
-                    categories: [...new Set(data.map(p => p.category))]
-                };
-            }
-            return { products: [], categories: [] };
-        } catch (error) {
-            console.error("Error loading products:", error);
-            return { products: [], categories: [] };
+   async function loadProducts() {
+    try {
+        await getAppSettings();
+        const response = await fetch('/api/products');
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            return {
+                products: data.map(product => ({
+                    id: product.id,
+                    name: product.name || 'Unnamed Product',
+                    description: product.description || '',
+                    price: `Bs ${(parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0) * currentExchangeRate).toFixed(2)}`,
+                    originalPrice: product.price || '$0.00',
+                    priceValue: parseFloat(product.price?.replace(/[^0-9.]/g, '') || 0),
+                    image: product.image || 'https://via.placeholder.com/500', // Línea crítica
+                    images: product.images || [],
+                    video: product.video || '',
+                    sizes: product.sizes || [],
+                    colors: product.colors || [],
+                    badge: product.badge || '',
+                    category: product.category || 'Uncategorized'
+                })),
+                categories: [...new Set(data.map(p => p.category))]
+            };
         }
+        return { products: [], categories: [] };
+    } catch (error) {
+        console.error("Error loading products:", error);
+        return { products: [], categories: [] };
     }
+}
 
     // Función modificada CORREGIDA
 function displayProducts(productsToShow) {
