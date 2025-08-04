@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Tiendas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        #log {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #3498db;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Generador de Tiendas</h1>
+    <p>Esta herramienta genera archivos HTML para cada tienda usando:</p>
+    <ul>
+        <li>Plantilla base de <code>main/base/index.html</code></li>
+        <li>Productos de Supabase</li>
+        <li>Imágenes locales en formato .webp</li>
+    </ul>
+
+    <button id="startBtn">Iniciar Generación</button>
+    <div id="status"></div>
+    <div id="log"></div>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://tu-proyecto-supabase.supabase.co';
+        const SUPABASE_KEY = 'tu-clave-publica-supabase';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Elementos del DOM
+        const startBtn = document.getElementById('startBtn');
+        const statusEl = document.getElementById('status');
+        const logEl = document.getElementById('log');
+
+        // Función para agregar mensajes al log
+        function log(message) {
+            logEl.textContent += message + '\n';
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Función para obtener la plantilla base
+        async function getBaseTemplate() {
+            try {
+                log('Obteniendo plantilla base...');
+                const response = await fetch('/base/index.html');
+                if (!response.ok) throw new Error('No se pudo cargar la plantilla');
+                return await response.text();
+            } catch (error) {
+                log(`ERROR: ${error.message}`);
+                throw error;
+            }
+        }
+
+        // Función para obtener productos de Supabase
+        async function getProducts() {
+            try {
+                log('Cargando productos desde Supabase...');
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .order('id', { ascending: true });
+
+                if (error) throw error;
+                log(`Se encontraron ${data.length} productos`);
+                return data;
+            } catch (error) {
+                log(`ERROR al cargar productos: ${error.message}`);
+                throw error;
+            }
+        }
+
+        // Función principal
+        async function generateStores() {
+            try {
+                startBtn.disabled = true;
+                statusEl.innerHTML = '<div class="spinner"></div> Procesando...';
+                logEl.textContent = '';
+
+                // 1. Obtener plantilla base
+                const template = await getBaseTemplate();
+                
+                // 2. Obtener productos
+                const products = await getProducts();
+                
+                // 3. Pedir permiso para guardar archivos
+                log('Solicitando permiso para guardar archivos...');
+                const dirHandle = await window.showDirectoryPicker();
+                
+                // 4. Procesar cada tienda
+                const storeDirs = await findStoreDirectories(dirHandle);
+                
+                if (storeDirs.length === 0) {
+                    log('No se encontraron carpetas de tiendas');
+                    return;
+                }
+                
+                log(`Procesando ${storeDirs.length} tiendas...`);
+                
+                for (const storeDir of storeDirs) {
+                    await processStore(storeDir, template, products);
+                }
+                
+                statusEl.innerHTML = '✅ Generación completada exitosamente';
+                log('Proceso finalizado');
+                
+            } catch (error) {
+                statusEl.innerHTML = '❌ Error en el proceso';
+                log(`ERROR: ${error.message}`);
+                console.error(error);
+            } finally {
+                startBtn.disabled = false;
+            }
+        }
+
+        // Buscar carpetas de tiendas
+        async function findStoreDirectories(dirHandle) {
+            const storeDirs = [];
+            
+            for await (const entry of dirHandle.values()) {
+                if (entry.kind === 'directory' && entry.name.startsWith('tienda')) {
+                    storeDirs.push(entry);
+                }
+            }
+            
+            return storeDirs;
+        }
+
+        // Procesar una tienda específica
+        async function processStore(storeDir, template, products) {
+            try {
+                log(`\nProcesando tienda: ${storeDir.name}`);
+                
+                // 1. Crear el archivo index.html
+                const fileHandle = await storeDir.getFileHandle('index.html', { create: true });
+                const writable = await fileHandle.createWritable();
+                
+                // 2. Personalizar el template
+                let storeContent = template.replace(
+                    /<meta name="html-name" content="[^"]*">/,
+                    `<meta name="html-name" content="${storeDir.name}">`
+                );
+                
+                // 3. Escribir el archivo
+                await writable.write(storeContent);
+                await writable.close();
+                
+                log(`Archivo index.html creado en ${storeDir.name}`);
+                
+            } catch (error) {
+                log(`ERROR al procesar ${storeDir.name}: ${error.message}`);
+                throw error;
+            }
+        }
+
+        // Event listener
+        startBtn.addEventListener('click', generateStores);
+
+        // Cargar SDK de Supabase
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@supabase/supabase-js@2';
+        script.onload = () => {
+            startBtn.disabled = false;
+            log('SDK de Supabase cargado correctamente');
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>
