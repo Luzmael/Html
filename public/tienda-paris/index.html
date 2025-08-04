@@ -1015,14 +1015,6 @@
 </head>
 <body>
 
-
-
-  <!-- Aviso MQU -->
-  <div style="background:#fff7cc; color:#333; padding:10px; text-align:center; font-size:14px; border-bottom:2px solid #ffcc00;">
-    ⚠️ Este pedido se activa solo si se alcanza el MQU (Mínimo de Quórum de Unidades). Si algún producto no llega al mínimo, el <strong>líder comunitario</strong> responsable de tu calle gestionará el reembolso directamente contigo. ¡Gracias por apoyar esta compra solidaria!
-  </div>
-
-
    
     <h1>Digital Catalog Pro</h1>
     
@@ -1112,6 +1104,14 @@
     </div>
 
     <script>
+
+     
+  window.onload = function() {
+    alert("⚠️ Este sistema activa productos solo si se alcanza el MQU (Mínimo de Quórum de Unidades). Si algún producto no llega al mínimo, el reembolso será gestionado por el líder comunitario de tu calle o iglesia. ¡Gracias por apoyar esta compra solidaria!");
+  }
+
+
+       
         // Variables globales
         let currentExchangeRate = 115.33;
         let shippingCost = 0;
