@@ -8,15 +8,15 @@
       "destination": "/api/$1"
     },
     {
-      "source": "/tienda/([a-z0-9-]+)", // Esta regla es para URLs bonitas como /tienda/zapatos
+      "source": "/tienda/([a-z0-9-]+)", 
       "destination": "/public/tienda-$1/index.html"
     },
     {
-      "source": "/public/(.*)", // <-- ¡NUEVA REGLA CRUCIAL AQUÍ!
-      "destination": "/public/$1" // Permite acceso directo a archivos dentro de 'public/'
+      "source": "/public/(.*)", 
+      "destination": "/public/$1" 
     },
     {
-      "source": "/", // Para la página principal, si tu index.html está en la raíz
+      "source": "/", 
       "destination": "/index.html"
     }
   ],
