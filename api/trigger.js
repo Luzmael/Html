@@ -5,18 +5,18 @@ const supabase = createClient(
   process.env.SUPABASE_KEY
 );
 
-export default async (req, res) => {
-  // 1. Configuración CORS esencial
+export default async function handler(req, res) {
+  // Configuración CORS esencial
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // 2. Manejo de preflight REQUERIDO
+  // Manejo de preflight REQUERIDO
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // 3. Validar método POST
+  // Validar método POST
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ 
@@ -28,12 +28,12 @@ export default async (req, res) => {
   try {
     console.log('🔔 Petición recibida - Validando variables...');
     
-    // 4. Validar variables críticas
+    // Validar variables críticas
     if (!process.env.GH_REPO || !process.env.GH_TOKEN) {
       throw new Error('Configuración de GitHub incompleta');
     }
 
-    // 5. Disparar GitHub Action
+    // Disparar GitHub Action
     console.log('🚀 Disparando GitHub Action...');
     const response = await fetch(
       `https://api.github.com/repos/${process.env.GH_REPO}/dispatches`,
@@ -56,9 +56,9 @@ export default async (req, res) => {
     );
 
     if (!response.ok) {
-      const errorData = await response.text();
+      const errorData = await response.json().catch(() => ({}));
       console.error('❌ Error GitHub API:', errorData);
-      throw new Error(errorData.message || 'Error al comunicarse con GitHub');
+      throw new Error(errorData.message || `Error HTTP: ${response.status}`);
     }
 
     console.log('✅ GitHub Action disparado correctamente');
@@ -76,9 +76,10 @@ export default async (req, res) => {
         stack: error.stack,
         env: {
           GH_REPO: process.env.GH_REPO ? '✅ Configurado' : '❌ Faltante',
-          GH_TOKEN: process.env.GH_TOKEN ? '✅ Configurado' : '❌ Faltante'
+          GH_TOKEN: process.env.GH_TOKEN ? '✅ Configurado' : '❌ Faltante',
+          SUPABASE_URL: process.env.SUPABASE_URL ? '✅ Configurado' : '❌ Faltante'
         }
       } : undefined
     });
   }
-};
+}
