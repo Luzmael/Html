@@ -4,29 +4,44 @@
     {
       "src": "api/*.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "/api/$1",
+      "methods": ["GET", "POST", "OPTIONS"]
+    },
+    {
       "src": "/tienda-(.*)",
-      "dest": "/tienda-$1/index.html"
+      "dest": "/public/tienda-$1/index.html"
     },
     {
       "src": "/generador",
-      "dest": "/generador/index.html"
+      "dest": "/public/generador/index.html"
     },
     {
       "src": "/products/(.*)",
-      "dest": "/products/$1"
+      "dest": "/public/products/$1"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
+      "src": "/",
+      "dest": "/public/generador/index.html"
+    }
+  ],
+  "headers": [
     {
-      "src": "/(.*)",
-      "dest": "/generador/index.html",
-      "status": 200
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
     }
   ]
 }
