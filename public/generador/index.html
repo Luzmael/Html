@@ -120,108 +120,63 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const btn = document.getElementById('triggerBtn');
-            const btnText = document.getElementById('btnText');
-            const spinner = document.getElementById('spinner');
-            const status = document.getElementById('status');
-            const statusMsg = document.getElementById('statusMessage');
-            const timestamp = document.getElementById('timestamp');
-            
-            // Actualizar marca de tiempo
-            const updateTimestamp = () => {
-                const now = new Date();
-                timestamp.textContent = `Última actualización: ${now.toLocaleString()}`;
-            };
-            updateTimestamp();
-            
-            btn.addEventListener('click', async () => {
-                // Resetear estado
-                btn.disabled = true;
-                spinner.style.display = 'block';
-                btnText.textContent = "Procesando...";
-                status.className = '';
-                statusMsg.innerHTML = '<span class="status-icon">⏳</span> Conectando con el servidor...';
-                
-                try {
-                    const startTime = new Date();
-                    const response = await fetch('https://html-cyan-nine.vercel.app/api/trigger', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (!response.ok) {
-                        throw new Error(data.error || `Error del servidor: ${response.status}`);
-                    }
-                    
-                    // Éxito
-                    status.className = 'success';
-                    statusMsg.innerHTML = `
-                        <span class="status-icon">✅</span> <strong>Generación iniciada</strong><br>
-                        <small>Los catálogos se actualizarán en 2-3 minutos</small>
-                    `;
-                    
-                    // Monitorear estado (opcional)
-                    checkGenerationStatus(startTime);
-                    
-                } catch (error) {
-                    console.error('Error:', error);
-                    status.className = 'error';
-                    statusMsg.innerHTML = `
-                        <span class="status-icon">❌</span> <strong>Error al generar</strong><br>
-                        <small>${error.message}</small>
-                    `;
-                    
-                } finally {
-                    btn.disabled = false;
-                    spinner.style.display = 'none';
-                    btnText.textContent = "Generar Catálogos";
-                    updateTimestamp();
-                }
-            });
-            
-            // Función opcional para verificar estado
-            async function checkGenerationStatus(startTime) {
-                const maxAttempts = 10;
-                let attempts = 0;
-                
-                const checkStatus = async () => {
-                    if (attempts >= maxAttempts) {
-                        status.className = 'warning';
-                        statusMsg.innerHTML = `
-                            <span class="status-icon">⚠️</span> <strong>Verificación incompleta</strong><br>
-                            <small>Actualiza la página para comprobar los cambios</small>
-                        `;
-                        return;
-                    }
-                    
-                    try {
-                        // Aquí podrías implementar lógica para verificar
-                        // el estado del workflow en GitHub API
-                        attempts++;
-                        
-                        // Simulación de progreso (remover en producción)
-                        statusMsg.innerHTML = `
-                            <span class="status-icon">🔄</span> <strong>Generando (${attempts}/${maxAttempts})</strong><br>
-                            <small>Por favor espera...</small>
-                        `;
-                        
-                        if (attempts < maxAttempts) {
-                            setTimeout(checkStatus, 5000); // Reintentar cada 5s
-                        }
-                        
-                    } catch (error) {
-                        console.warn('Error al verificar estado:', error);
-                    }
-                };
-                
-                setTimeout(checkStatus, 3000);
-            }
-        });
+        document.getElementById('triggerBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('triggerBtn');
+  const status = document.getElementById('status');
+  
+  // Estado inicial
+  btn.disabled = true;
+  status.innerHTML = `
+    <div class="status-loading">
+      <span class="spinner"></span>
+      <span>Conectando con el servidor...</span>
+    </div>
+  `;
+  
+  try {
+    const startTime = Date.now();
+    
+    const response = await fetch('https://html-cyan-nine.vercel.app/api/trigger', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error || `Error del servidor (${response.status})`);
+    }
+    
+    status.innerHTML = `
+      <div class="status-success">
+        <span>✅</span>
+        <div>
+          <strong>${data.message}</strong>
+          <small>${data.next_steps}</small>
+          <small class="timestamp">Tiempo: ${((Date.now() - startTime)/1000).toFixed(2)}s</small>
+        </div>
+      </div>
+    `;
+    
+  } catch (error) {
+    console.error('Error en frontend:', error);
+    status.innerHTML = `
+      <div class="status-error">
+        <span>❌</span>
+        <div>
+          <strong>Error al procesar la solicitud</strong>
+          <small>${error.message}</small>
+          <small class="timestamp">${new Date().toLocaleTimeString()}</small>
+        </div>
+      </div>
+    `;
+    
+  } finally {
+    btn.disabled = false;
+  }
+});
     </script>
 </body>
 </html>
