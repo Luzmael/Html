@@ -1,63 +1,68 @@
 export default async (req, res) => {
+  // 1. Solo permitir método POST
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método no permitido' });
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).json({ 
+      error: 'Método no permitido',
+      allowed_methods: ['POST']
+    });
+  }
+
+  // 2. Validar cabeceras CORS (si es necesario)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // 3. Manejar preflight para CORS
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
 
   try {
-    // Verificar si ya hay una ejecución en progreso
-    const statusRes = await fetch(
-      `https://api.github.com/repos/${process.env.GH_REPO}/actions/runs?status=in_progress`,
-      {
-        headers: {
-          'Authorization': `token ${process.env.GH_TOKEN}`,
-          'Accept': 'application/vnd.github+json'
-        }
-      }
-    );
+    // 4. Configurar cliente GitHub
+    const repo = process.env.GH_REPO; // Formato: usuario/repo
+    const token = process.env.GH_TOKEN;
 
-    const { workflow_runs } = await statusRes.json();
-    const hasRunning = workflow_runs.some(run => run.name === '🛠️ Generador de Tiendas Automático');
-
-    if (hasRunning) {
-      return res.status(429).json({ 
-        error: 'El generador ya está en ejecución. Espere a que termine.' 
-      });
+    if (!repo || !token) {
+      throw new Error('Configuración de GitHub incompleta');
     }
 
-    // Disparar nuevo workflow
-    const dispatchRes = await fetch(
-      `https://api.github.com/repos/${process.env.GH_REPO}/dispatches`,
+    // 5. Disparar el workflow
+    const response = await fetch(
+      `https://api.github.com/repos/${repo}/dispatches`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `token ${process.env.GH_TOKEN}`,
+          'Authorization': `token ${token}`,
           'Accept': 'application/vnd.github.everest-preview+json',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           event_type: 'run-generator',
           client_payload: {
-            trigger_time: new Date().toISOString()
+            trigger_source: 'web-interface'
           }
         })
       }
     );
 
-    if (!dispatchRes.ok) {
-      const error = await dispatchRes.text();
-      throw new Error(`GitHub API: ${error}`);
+    if (!response.ok) {
+      const errorDetails = await response.text();
+      throw new Error(`GitHub API: ${errorDetails}`);
     }
 
-    res.status(200).json({ 
+    // 6. Respuesta exitosa
+    return res.status(200).json({
       success: true,
-      message: 'Generación iniciada. Los cambios aparecerán en 2-3 minutos.'
+      message: 'Workflow disparado exitosamente',
+      repo: repo
     });
 
   } catch (error) {
     console.error('Error en trigger:', error);
-    res.status(500).json({ 
+    return res.status(500).json({
       error: error.message,
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
