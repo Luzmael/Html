@@ -21,6 +21,14 @@
     {
       "source": "/generador",
       "destination": "/public/generador/index.html"
+    },
+    {
+      "source": "/tienda-(?<name>[a-z0-9-]+)",
+      "destination": "/public/tienda-$name/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/public/generador/index.html"
     }
   ],
   "redirects": [
@@ -45,32 +53,19 @@
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
         { "key": "CDN-Cache-Control", "value": "public, max-age=31536000" }
       ]
-    }
-  ],
-  "routes": [
-    {
-      "src": "/tienda-(?<name>[a-z0-9-]+)",
-      "dest": "/public/tienda-$name/index.html",
-      "headers": {
-        "Cache-Control": "no-cache"
-      }
     },
     {
-      "src": "/api/trigger",
-      "dest": "/api/trigger.js",
-      "methods": ["POST", "OPTIONS"]
+      "source": "/public/_next/static/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
     },
     {
-      "src": "/public/_next/static/(.*)",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      },
-      "continue": true
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/generador/index.html",
-      "status": 200
+      "source": "/tienda-(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
     }
   ]
 }
+
