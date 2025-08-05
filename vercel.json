@@ -22,19 +22,19 @@
       "methods": ["POST"]
     },
     
-    // Tiendas dinámicas
+   
     {
       "src": "/tienda/([a-z0-9-]+)",
       "dest": "/public/tienda-$1/index.html"
     },
     
-    // Generador
+    
     {
       "src": "/generador",
       "dest": "/public/generador/index.html"
     },
     
-    // Imágenes con cache
+    
     {
       "src": "/products/(.*)\\.webp",
       "headers": {
@@ -43,7 +43,7 @@
       "continue": true
     },
     
-    // Fallback para SPA
+    
     {
       "src": "/(.*)",
       "dest": "/public/generador/index.html",
