@@ -10,6 +10,11 @@
             max-width: 600px;
             margin: 2rem auto;
             padding: 0 1rem;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
         }
         button {
             background: #238636;
@@ -19,53 +24,180 @@
             font-size: 1rem;
             border-radius: 6px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0 auto;
         }
-        button:hover { background: #2ea043; }
-        button:disabled { background: #848d97; }
+        button:hover {
+            background: #2ea043;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        button:disabled {
+            background: #848d97;
+            transform: none !important;
+            cursor: not-allowed;
+        }
         #status {
             margin-top: 1.5rem;
-            padding: 1rem;
+            padding: 1.25rem;
             background: #f6f8fa;
             border: 1px solid #d0d7de;
-            border-radius: 6px;
+            border-radius: 8px;
+            min-height: 80px;
+        }
+        .success {
+            color: #1a7f37;
+            border-color: #2fcb53;
+            background: #f0fff4;
+        }
+        .error {
+            color: #cf222e;
+            border-color: #ff8182;
+            background: #fff0f0;
+        }
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 50%;
+            border-top-color: #238636;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .timestamp {
+            font-size: 0.8rem;
+            color: #656d76;
+            margin-top: 0.5rem;
+            display: block;
         }
     </style>
 </head>
 <body>
     <h1>Generador de Tiendas</h1>
-    <p>Actualiza todos los archivos index.html automáticamente:</p>
+    <p>Actualiza automáticamente todos los catálogos con los últimos productos:</p>
     
-    <button id="triggerBtn">Generar Ahora</button>
-    <div id="status">Listo para ejecutar</div>
+    <button id="triggerBtn">
+        <span id="spinner" class="loading" style="display: none;"></span>
+        <span id="btnText">Generar Ahora</span>
+    </button>
+    
+    <div id="status">
+        <div id="statusMessage">Listo para ejecutar</div>
+        <small id="timestamp" class="timestamp"></small>
+    </div>
 
     <script>
-        document.getElementById('triggerBtn').addEventListener('click', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('triggerBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('spinner');
             const status = document.getElementById('status');
+            const statusMsg = document.getElementById('statusMessage');
+            const timestamp = document.getElementById('timestamp');
             
-            btn.disabled = true;
-            status.textContent = "Ejecutando...";
+            let isRunning = false;
             
-            try {
-                const response = await fetch('/api/trigger', {
-                    method: 'POST'
-                });
+            // Actualizar timestamp
+            const updateTime = () => {
+                timestamp.textContent = `Última actualización: ${new Date().toLocaleString()}`;
+            };
+            updateTime();
+            
+            btn.addEventListener('click', async () => {
+                if (isRunning) return;
                 
-                const result = await response.json();
+                isRunning = true;
+                btn.disabled = true;
+                spinner.style.display = 'inline-block';
+                btnText.textContent = "Procesando...";
+                statusMsg.innerHTML = "Conectando con el servidor...";
+                status.className = '';
                 
-                if (response.ok) {
-                    status.innerHTML = `
-                        ✅ Generación iniciada<br>
-                        <small>Los cambios aparecerán en 1-2 minutos</small>
+                try {
+                    const startTime = new Date();
+                    const response = await fetch('/api/trigger', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(result.error || 'Error en el servidor');
+                    }
+                    
+                    status.className = 'success';
+                    statusMsg.innerHTML = `
+                        ✅ <strong>Generación iniciada con éxito</strong>
+                        <br><small>Los cambios se verán reflejados en 2-3 minutos</small>
                     `;
-                } else {
-                    throw new Error(result.error || 'Error desconocido');
+                    
+                    // Monitorear estado (opcional)
+                    monitorTask(startTime);
+                    
+                } catch (error) {
+                    console.error('Error:', error);
+                    status.className = 'error';
+                    statusMsg.innerHTML = `
+                        ❌ <strong>Error al generar tiendas</strong>
+                        <br><small>${error.message}</small>
+                    `;
+                } finally {
+                    btnText.textContent = "Generar Ahora";
+                    spinner.style.display = 'none';
+                    btn.disabled = false;
+                    isRunning = false;
+                    updateTime();
                 }
-            } catch (error) {
-                status.textContent = `❌ Error: ${error.message}`;
-            } finally {
-                btn.disabled = false;
+            });
+            
+            // Función opcional para monitorear progreso
+            async function monitorTask(startTime) {
+                const checkInterval = 15000; // 15 segundos
+                const maxChecks = 8; // Máximo 2 minutos
+                let checksDone = 0;
+                
+                const checkStatus = async () => {
+                    if (checksDone >= maxChecks) return;
+                    
+                    try {
+                        const res = await fetch(`https://api.github.com/repos/${encodeURIComponent('tu-usuario/tu-repo')}/actions/runs`, {
+                            headers: {
+                                'Accept': 'application/vnd.github+json'
+                            }
+                        });
+                        
+                        const data = await res.json();
+                        const latestRun = data.workflow_runs?.[0];
+                        
+                        if (latestRun && new Date(latestRun.created_at) >= startTime) {
+                            if (latestRun.status === 'completed') {
+                                statusMsg.innerHTML = `
+                                    ✅ <strong>Generación completada</strong>
+                                    <br><small>Todos los catálogos fueron actualizados</small>
+                                `;
+                                return;
+                            }
+                        }
+                        
+                        checksDone++;
+                        setTimeout(checkStatus, checkInterval);
+                    } catch (e) {
+                        console.warn('Error al monitorear:', e);
+                    }
+                };
+                
+                setTimeout(checkStatus, checkInterval);
             }
         });
     </script>
