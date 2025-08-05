@@ -6,7 +6,7 @@
       "use": "@vercel/node"
     },
     {
-      "src": "public/**/*",
+      "src": "public/*",
       "use": "@vercel/static"
     }
   ],
@@ -16,22 +16,16 @@
       "dest": "/api/$1"
     },
     {
-      "src": "/tienda-(.*)",
-      "dest": "/public/tienda-$1/index.html"
+      "src": "/tiendas/(.*)",
+      "dest": "/public/tiendas/$1/index.html"
     },
     {
       "src": "/generador",
-      "dest": "/public/generador/index.html",
-      "headers": {
-        "Cache-Control": "no-cache"
-      }
+      "dest": "/public/generador/index.html"
     },
     {
-      "src": "/products/(.*)",
-      "dest": "/public/products/$1",
-      "headers": {
-        "Cache-Control": "public, max-age=31536000, immutable"
-      }
+      "src": "/assets/(.*)",
+      "dest": "/public/assets/$1"
     },
     {
       "src": "/",
