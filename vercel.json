@@ -1,91 +1,13 @@
 {
   "version": 2,
-  "public": true,
-  "cleanUrls": false,
-  "regions": ["sfo1"],
-  "builds": [
+  "routes": [
     {
-      "src": "api/trigger.js",
-      "use": "@vercel/node"
+      "src": "/tienda-(.*)",
+      "dest": "/public/tienda-$1/index.html"
     },
     {
-      "src": "public/**/*.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/generador",
-      "destination": "/public/generador/index.html"
-    },
-    {
-      "source": "/tienda-(?<name>[a-z0-9-]+)",
-      "destination": "/public/tienda-$name/index.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/public/generador/index.html"
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/generador",
-      "permanent": false
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "POST, OPTIONS"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0"
-        }
-      ]
-    },
-    {
-      "source": "/products/(.*)\\.webp",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "CDN-Cache-Control",
-          "value": "public, max-age=31536000"
-        }
-      ]
-    },
-    {
-      "source": "/public/_next/static/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/tienda-(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
+      "src": "/(.*)",
+      "dest": "/public/generador/index.html"
     }
   ]
 }
