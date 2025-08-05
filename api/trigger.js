@@ -42,7 +42,8 @@ export default async (req, res) => {
         headers: {
           'Authorization': `token ${process.env.GH_TOKEN}`,
           'Accept': 'application/vnd.github.everest-preview+json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'User-Agent': 'DigitalCatalogPro'
         },
         body: JSON.stringify({
           event_type: 'run-generator',
@@ -55,7 +56,7 @@ export default async (req, res) => {
     );
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.text();
       console.error('❌ Error GitHub API:', errorData);
       throw new Error(errorData.message || 'Error al comunicarse con GitHub');
     }
