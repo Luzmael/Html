@@ -1,30 +1,30 @@
 {
   "version": 2,
   "routes": [
-    // 1. Rutas de tiendas (ej: /tienda-paris, /tienda-caracas)
+   
     {
       "src": "/tienda-(.*)",
       "dest": "/tienda-$1/index.html"
     },
-    // 2. Ruta del generador (ej: /generador)
+   
     {
       "src": "/generador",
       "dest": "/generador/index.html"
     },
-    // 3. Archivos estáticos (imágenes en /products)
+   
     {
       "src": "/products/(.*)",
       "dest": "/products/$1"
     },
-    // 4. APIs (ej: /api/trigger, /api/products)
+    
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     },
-    // 5. Ruta de fallback (opcional: para SPAs o 404 personalizados)
+    
     {
       "src": "/(.*)",
-      "dest": "/generador/index.html"  // o "/base/index.html" si tienes una página principal
+      "dest": "/generador/index.html"  
     }
   ]
 }
