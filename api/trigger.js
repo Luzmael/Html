@@ -4,9 +4,9 @@ export default async (req, res) => {
   }
 
   try {
-    // Verificar si el generador ya está en ejecución (opcional)
-    const statusResponse = await fetch(
-      `https://api.github.com/repos/${process.env.GITHUB_REPO}/actions/runs`,
+    // Verificar si ya hay una ejecución en progreso
+    const statusRes = await fetch(
+      `https://api.github.com/repos/${process.env.GH_REPO}/actions/runs?status=in_progress`,
       {
         headers: {
           'Authorization': `token ${process.env.GH_TOKEN}`,
@@ -14,22 +14,19 @@ export default async (req, res) => {
         }
       }
     );
-    
-    const { workflow_runs } = await statusResponse.json();
-    const running = workflow_runs.some(run => 
-      run.status === 'in_progress' && 
-      run.name === '🛠️ Generador de Tiendas'
-    );
 
-    if (running) {
+    const { workflow_runs } = await statusRes.json();
+    const hasRunning = workflow_runs.some(run => run.name === '🛠️ Generador de Tiendas Automático');
+
+    if (hasRunning) {
       return res.status(429).json({ 
-        error: 'El generador ya está en ejecución. Por favor espera.' 
+        error: 'El generador ya está en ejecución. Espere a que termine.' 
       });
     }
 
-    // Disparar el workflow
-    const dispatchResponse = await fetch(
-      `https://api.github.com/repos/${process.env.GITHUB_REPO}/dispatches`,
+    // Disparar nuevo workflow
+    const dispatchRes = await fetch(
+      `https://api.github.com/repos/${process.env.GH_REPO}/dispatches`,
       {
         method: 'POST',
         headers: {
@@ -40,25 +37,24 @@ export default async (req, res) => {
         body: JSON.stringify({
           event_type: 'run-generator',
           client_payload: {
-            triggered_by: req.headers['x-forwarded-for'] || req.connection.remoteAddress
+            trigger_time: new Date().toISOString()
           }
         })
       }
     );
 
-    if (!dispatchResponse.ok) {
-      const errorText = await dispatchResponse.text();
-      console.error('GitHub API Error:', errorText);
-      throw new Error('Error al comunicarse con GitHub');
+    if (!dispatchRes.ok) {
+      const error = await dispatchRes.text();
+      throw new Error(`GitHub API: ${error}`);
     }
 
-    res.status(202).json({ 
+    res.status(200).json({ 
       success: true,
-      message: 'Generación iniciada. Los cambios aparecerán en 1-2 minutos.'
+      message: 'Generación iniciada. Los cambios aparecerán en 2-3 minutos.'
     });
 
   } catch (error) {
-    console.error('Trigger Error:', error);
+    console.error('Error en trigger:', error);
     res.status(500).json({ 
       error: error.message,
       details: process.env.NODE_ENV === 'development' ? error.stack : undefined
