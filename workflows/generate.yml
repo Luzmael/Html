@@ -1,35 +1,24 @@
 name: 🛠️ Generador de Tiendas
-
 on:
-  workflow_dispatch:        # Ejecución manual
-  repository_dispatch:      # Trigger desde API
+  repository_dispatch:
     types: [run-generator]
-
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Configurar Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 20
-
-      - name: Instalar dependencias
-        run: npm install @supabase/supabase-js
-
-      - name: Ejecutar generador
+      - run: npm install @supabase/supabase-js
+      - run: node api/generator.js
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-        run: node api/generator.js
-
-      - name: Subir cambios
+      - name: Commit changes
         run: |
-          git config --global user.name "GitHub Bot"
+          git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
-          git add .
+          git add public/tienda*/
           git commit -m "🔄 Actualización automática de tiendas"
           git push
