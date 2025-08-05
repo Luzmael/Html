@@ -1,92 +1,53 @@
 {
   "version": 2,
-  "public": true,
-  "cleanUrls": false,
-  "regions": ["sfo1"],
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "src": "api/trigger.js",
+      "use": "@vercel/node"
     },
     {
-      "source": "/tienda/([a-z0-9-]+)",
-      "destination": "/public/tienda-$1/index.html"
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/index.html",
-      "permanent": false
+      "src": "public/generador/index.html",
+      "use": "@vercel/static"
     },
     {
-      "source": "/public/(.*)",
-      "destination": "/public/$1",
-      "permanent": false
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/products",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, stale-while-revalidate=86400"
-        }
-      ]
-    },
-    {
-      "source": "/api/image-proxy",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=604800, stale-while-revalidate=86400"
-        },
-        {
-          "key": "CDN-Cache-Control",
-          "value": "public, max-age=604800"
-        },
-        {
-          "key": "Vercel-CDN-Cache-Control",
-          "value": "public, max-age=604800"
-        }
-      ]
-    },
-    {
-      "source": "/public/(.*)/index.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=86400"
-        }
-      ]
-    },
-    {
-      "source": "/products/(.*)\\.webp",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        },
-        {
-          "key": "CDN-Cache-Control",
-          "value": "public, max-age=31536000"
-        }
-      ]
+      "src": "public/tienda-*/index.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
+    // API Endpoint
     {
       "src": "/api/trigger",
       "dest": "/api/trigger.js",
-      "methods": ["POST", "OPTIONS"]
+      "methods": ["POST"]
     },
+    
+    // Tiendas dinámicas
     {
-      "src": "/public/_next/static/(.*)",
+      "src": "/tienda/([a-z0-9-]+)",
+      "dest": "/public/tienda-$1/index.html"
+    },
+    
+    // Generador
+    {
+      "src": "/generador",
+      "dest": "/public/generador/index.html"
+    },
+    
+    // Imágenes con cache
+    {
+      "src": "/products/(.*)\\.webp",
       "headers": {
         "Cache-Control": "public, max-age=31536000, immutable"
       },
       "continue": true
+    },
+    
+    // Fallback para SPA
+    {
+      "src": "/(.*)",
+      "dest": "/public/generador/index.html",
+      "status": 200
     }
   ]
 }
